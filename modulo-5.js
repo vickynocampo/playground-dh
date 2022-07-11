@@ -333,6 +333,38 @@ const OldController = require('../controllers/OldController');
 function redirigir(req, res, next){
 res.redirect("/")
 }
-
-
+//let redirigir = (req, res, next)=> {res.redirect("/")}
 router.get('/ruta-en-desuso', redirigir  , OldController.index); //Agregá la función redirigir como segundo parámetro de tu ruta
+
+//Introducción a Express Validator
+const express = require('express');
+const router = express.Router();
+const UsuarioController = require('../controllers/UsuarioController');
+const {check, validationResult, body} = require("express-validator");
+
+let validation  = [
+    check("email").isEmail(),
+    check("password").isLength ({min:6})
+]
+
+router.post('/registro', validation,  UsuarioController.registro);
+
+//Express Validator avanzado
+const express = require('express');
+const router = express.Router();
+const { validationResult, body } = require('express-validator');
+
+const userController = {
+  login: (req, res) => {
+    const errores = validationResult(req);
+
+    //Chequear los errores acá, redirigir si hay errores
+    if(!errores.isEmpty()){
+       res.render('login', {errores: errores.array()})
+    }
+
+    if (req.body.name == 'admin' && req.body.pass == 123) {
+    	res.redirect('/dashboard');
+    }
+  }  
+}
