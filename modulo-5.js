@@ -437,6 +437,32 @@ const index = (req, res) => {
 	}
 }
 
+//Recomendados:
+var express = require('express');
+var cookieParser = require('cookie-parser');
+
+var app = express();
+app.use(cookieParser());
+
+const listadoProductos = {
+	vestidos: [
+		'vestido broderie',
+		'vestido towel',
+		'vestido voile',
+	],
+	remeras: [
+		'remera alforzas',
+		'remera bordada',
+		'musculosa',
+	]
+}
+
+const recomendados = (req, res) => {
+	let preferencias = req.cookies.preferencias;
+	const productos =listadoProductos[preferencias];
+	res.render('/recomendados', {productos: productos})
+}
+
 
 //**** Hashing ****//
 //Probando hash
