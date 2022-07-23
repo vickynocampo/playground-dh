@@ -310,6 +310,19 @@ const upload = multer({ storage: storage });
 
 router.post('/subir-archivo', upload.any() ,fileController.upload); //Agregar el middleware de multer
 
+//Multer Validacion
+var upload = multer({ storage: storage })
+
+app.post('/register', upload.single('avatar'), (req, res, next) => {
+  const file = req.file;
+  if(!file){
+   const error = new Error("Por favor seleccione un archivo")
+   error.httpStatusCode = 400;
+   return next(error)
+  }
+  res.send(file)
+})
+
 //Contando visitas
 const express = require('express');
 const router = express.Router();
@@ -368,3 +381,90 @@ const userController = {
     }
   }  
 }
+
+//Configurando session
+const express = require('express');
+const app = express();
+
+const session = require("express-session");
+
+app.use(session({secret : "frase secreta que identifica el sitio"}));
+
+
+//Cambiando idioma
+const express = require('express');
+const app = express();
+
+const session = require('express-session');
+app.use(session({secret: "frase secreta"}));
+
+const cambiarIdioma = (req, res) => {
+	req.session.idioma = req.query.idioma
+	res.redirect('/');
+}
+
+
+//if session falta
+
+//Setear Cookie
+var express = require('express');
+var cookieParser = require('cookie-parser');
+
+var app = express();
+app.use(cookieParser());
+
+const index = (req, res) => {
+	//Escribí tu código acá
+res.cookie("ultimoAcceso", new Date());
+	//Código del controlador
+}
+
+//Preferencias de usuario
+var express = require('express');
+var cookieParser = require('cookie-parser');
+
+var app = express();
+app.use(cookieParser());
+
+const index = (req, res) => {
+	let estilo;
+	if (req.cookies.estilo !== undefined) {
+		let estilo = req.cookies.estilo;
+		 res.render('/', {estilo: estilo});
+	} else {
+		let estilo = "default";
+		 res.render('/', {estilo: estilo});
+	}
+}
+
+
+//**** Hashing ****//
+//Probando hash
+const password = '123456';
+const bcrypt = require("bcrypt");
+
+const hash = bcrypt.hashSync(password,10);
+
+console.log(hash);
+
+//Validando información hasheada
+const bcrypt = require('bcrypt');
+const hash1 = bcrypt.hashSync('123456', 10);
+
+// Escribir tu código aquí
+const hash2 = bcrypt.hashSync('123456', 10);
+
+if(hash1 == hash2){
+console.log('los hash son iguales')
+};
+
+//Utilizando el método compareSync
+const bcrypt = require('bcrypt');
+const password = '123456';
+const passwordEncriptada = bcrypt.hashSync(password, 10);
+
+// Escribir tu código aquí
+if(bcrypt.compareSync(password, passwordEncriptada)){
+console.log('El password es correcto');
+}
+
