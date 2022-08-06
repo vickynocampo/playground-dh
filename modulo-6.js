@@ -208,3 +208,243 @@ const controller = {
 }
  
 module.exports = controller;
+
+//Clase 32 - Manipulación de datos
+//Creando un usuario
+const Usuario = require('model/usuario.js');
+
+Usuario.create({
+     nombre: "Nombre",
+     email: "email",
+     password: "password"
+});
+
+//Creando usuarios
+const Pelicula = require('model/pelicula.js');
+
+Pelicula.bulkCreate([
+    {
+        titulo: "titulo1",
+        genero: "genero1"
+    },
+    {
+        titulo: "titulo2",
+        genero: "genero2"
+    },
+]);
+
+
+//Productos web
+const Producto = require('model/producto.js');
+
+const productoController = {
+  create: (req, res) => {
+    Producto.create({
+      nombre: req.body.nombre,
+      precio: req.body.precio
+    })
+  }
+}
+
+//Update
+//Actualizando el precio
+const Producto = require('model/producto.js');
+
+Producto.update(
+    {precio: 1234},
+    {where:{id:1}}
+);
+
+//Actualizando Serie
+const Serie = require('model/serie.js');
+
+Serie.update( 
+    {genero: "sitcom"},
+    {where: {genero: "comedia"}}
+)
+
+//Actualizando Usuario
+const Usuario = require('model/usuario.js');
+
+Usuario.upsert({
+email: "email",
+edad: "edad"
+});
+
+//Delete
+//Eliminar una película
+const Pelicula = require('model/pelicula.js');
+
+Pelicula.destroy({where: {id:3}})
+
+//Eliminar un usuario
+const Usuario = require('model/usuario.js');
+
+Usuario.destroy({where: {email:"kenny@south-park.com"}});
+
+//Eliminar varios usuarios
+const Sequelize = require('sequelize');
+const Usuario = require('model/usuario.js');
+const Op = Sequelize.Op;
+
+Usuario.destroy({where:{email:{[Op.like]: "%aol.com"}}})
+
+//Desafío Sequelize
+//Parte1
+const db = require('../database/models');
+
+const controller = {
+  almacenarEnDB: (req, res) => {
+    db.Product.create({
+      nombre: req.body.nombreProducto,
+      precio: req.body.precioProducto,
+      descripcion: req.body.descripcionProducto
+    }
+    )
+    res.redirect("/productos")
+  }
+}
+
+module.exports = controller;
+
+
+//Parte2
+
+//Parte3
+const db = require('../database/models');
+
+const controller = {
+   almacenarEnDB: (req, res) => {
+      db.Product
+         .create({
+            nombre: req.body.nombreProducto,
+            precio: req.body.precioProducto,
+            descripcion: req.body.descripcionProducto
+         })
+         .then(producto => {
+            res.redirect('/productos');
+         })
+   },
+   editarRegistro: (req, res) => {
+      db.Product
+         .update(
+            {
+               nombre: req.body.nombreEditado,
+               precio: req.body.precioEditado,
+               descripcion: req.body.descripcionEditada
+            },
+            { where: { id: req.params.id } }
+         )
+         res.redirect("/productos")
+   },
+}
+
+module.exports = controller;
+
+//Parte4
+const db = require('../database/models');
+ 
+const controller = {
+  almacenarEnDB: (req, res) => {
+     db.Product
+        .create({
+           nombre: req.body.nombreProducto,
+           precio: req.body.precioProducto,
+           descripcion: req.body.descripcionProducto
+        })
+        .then(producto => {
+           res.redirect('/productos');
+        })
+  },
+  editarRegistro: (req, res) => {
+     db.Product
+        .update(
+		 {
+              nombre: req.body.nombreEditado,
+              precio: req.body.precioEditado,
+              descripcion: req.body.descripcionEditada
+            },
+           {
+              where: { id: req.params.id }
+           }
+        )
+        .then(() => {
+           res.redirect('/productos');
+        })
+  },
+  borrarRegistro: (req, res) => {
+     db.Product
+      .destroy({where:{id:req.params.id}})
+      .then(()=> res.redirect('/productos'))
+  },
+}
+ 
+module.exports = controller;
+
+//Parte5 
+const express = require('express');
+const router = express.Router();
+ 
+const productsController = require('../controllers/productsController');
+ 
+router.get('/', productsController.index);
+router.post('/', productsController.almacenarEnDB);
+router.put('/:id', productsController.editarRegistro );
+router.delete('/:id', productsController.borrarRegistro );
+ 
+module.exports = router;
+
+//Clase 33 - Relaciones y CRUD completo
+//Relaciones 1:N belongTo
+const Sequelize = require('sequelize');
+const sequelize = require('../database');
+const Genero = require('model/genero.js');
+
+const Pelicula = sequelize.define('peliculas', {
+    titulo: Sequelize.STRING,
+    genero_id: Sequelize.INTEGER,
+});
+
+Pelicula.belongsTo(Genero, {foreignKey: "genero_id", as: "genero"})
+
+module.exports = Pelicula;
+
+//Relaciones 1:N hasMany
+const Sequelize = require('sequelize');
+const sequelize = require('../database'); 
+const Pelicula = require('model/pelicula.js');
+
+const Genero = sequelize.define('generos',{
+    nombre: Sequelize.STRING,
+});
+
+Genero.hasMany(Pelicula,{foreignKey: "genero_id", as: "genero"})
+
+module.exports = Genero;
+
+//
+const Pelicula = require('model/pelicula.js');
+
+Pelicula.findByPk(1, {include:["genero"]})
+.then((pelicula => console.log(pelicula.genero.nombre)))
+
+//
+const Sequelize = require('sequelize');
+const sequelize = require('../database');
+
+const Usuario = sequelize.define('usuarios', {
+    nombre: Sequelize.STRING,
+    apellido: Sequelize.STRING,
+});
+
+const Producto = sequelize.define('productos', {
+    nombre: Sequelize.STRING,
+    usuario_id: Sequelize.INTEGER,
+});
+
+const Creador = Producto.belongsTo(Usuario, { as: 'creador' });
+
+Producto.create(
+    { nombre: 'Falcon 9', creador: { nombre: 'Elon', apellido: 'Musk' } },
+    { include: [Creador] }
+);
