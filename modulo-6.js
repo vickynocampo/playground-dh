@@ -448,3 +448,177 @@ Producto.create(
     { nombre: 'Falcon 9', creador: { nombre: 'Elon', apellido: 'Musk' } },
     { include: [Creador] }
 );
+
+//Relaciones N:M
+//Películas de actor
+const Sequelize = require('sequelize');
+const sequelize = require('../database'); 
+
+const PeliculaActor = sequelize.define('pelicula_actor',{
+    pelicula_id: {
+    	type: Sequelize.INTEGER,
+    	references: {model:"Pelicula", key:"id"}
+    },
+    actor_id: {
+    	type: Sequelize.INTEGER,
+    	references: {model:"Actor", key:"id"}
+    }
+});
+
+module.exports = PeliculaActor;
+
+//Relaciones Pivot
+const Sequelize = require('sequelize');
+const sequelize = require('../database'); 
+const Actor = require('model/actor.js');
+const Pelicula = require('model/pelicula.js');
+
+const PeliculaActor = sequelize.define('pelicula_actor',{
+    pelicula_id: {
+    	type: Sequelize.INTEGER,
+    	references: {
+    		model: 'Pelicula',
+    		key: 'id'
+    	}
+    },
+    actor_id: {
+    	type: Sequelize.INTEGER,
+    	references: {
+    		model: 'Actor',
+    		key: 'id'
+    	}
+    }
+});
+
+PeliculaActor.belongsTo(Pelicula, {foreignKey: "pelicula_id"})
+
+PeliculaActor.belongsTo(Actor, {foreignKey: "actor_id"})
+
+module.exports = PeliculaActor;
+
+//Películas actor, toma 3
+const Sequelize = require('sequelize');
+const sequelize = require('../database'); 
+const Actor = require('model/actor.js');
+
+const Pelicula = sequelize.define('peliculas',{
+  titulo: Sequelize.STRING,
+  genero_id: Sequelize.INTEGER,
+});
+
+Pelicula.belongsToMany(Actor,{
+    as: "actores",
+    through: "PeliculaActor",
+    foreignKey: "pelicula_id",
+})
+
+module.exports = Pelicula;
+
+//Buscando actores
+const Pelicula = require('model/pelicula.js');
+
+Pelicula.findByPk(1, {include: ["actores"]})
+        .then(pelicula=>console.log(pelicula.actores));
+
+// Agregando actores
+const Pelicula = require('model/pelicula.js');
+
+Pelicula.findByPk(1).then(pelicula=>{pelicula.setActores([3, 5, 8])});
+
+//Desafio
+//1
+'use strict';
+ 
+module.exports = (sequelize, DataTypes) => {
+const product = sequelize.define('Product', {
+     nombre: DataTypes.STRING(200),
+     descripcion: DataTypes.TEXT,
+     precio: DataTypes.DECIMAL,
+ 	}, {
+          timestamps: false,
+          tableName: 'productos',
+ 	});
+ 
+	product.associate = models => {
+  	product.belongsTo(models.Brand, {
+            as: "brand",
+            through: "marcas",
+            foreignKey: "marca_id",
+            otherKey: "id",
+            timestamps: false
+    })
+}
+ 
+ 	return product;
+};
+
+//2
+'use strict';
+ 
+module.exports = (sequelize, DataTypes) => {
+  	const brand = sequelize.define('Brand', {
+     	nombre: DataTypes.STRING(),
+  	}, {
+          timestamps: false,
+          tableName: 'marcas',
+ 	});
+ 
+   	brand.associate = models => {
+ 	brand.hasMany(models.Product, {
+            as: "products",
+            foreignKey: "brand_id"
+        })
+  	}
+   	return brand;
+};
+
+//3
+'use strict';
+ 
+module.exports = (sequelize, DataTypes) => {
+const product = sequelize.define('Product', {
+     nombre: DataTypes.STRING(200),
+     descripcion: DataTypes.TEXT,
+     precio: DataTypes.DECIMAL,
+ 	}, {
+          timestamps: false,
+          tableName: 'productos',
+ 	});
+ 
+product.associate = models => {
+  product.belongsTo(models.Brand, {
+    as: 'brand',
+    foreignKey: 'marca_id'
+  });
+ 
+  
+product.belongsToMany(models.Color,{
+    as: "colors",
+    through: "colores_productos",
+   
+})
+}
+ 
+ 	return product;
+};
+
+//4
+const db = require('../database/models');
+
+const controller = {
+   index: (req, res) => {
+      db.Product
+         .findAll({
+            include: [ "brand", "colors"], 
+                   
+         })
+         .then(productos => {
+            res.send(productos);
+         })
+         .catch(err => {
+            res.send(err)
+         })
+   }
+}
+
+module.exports = controller;
